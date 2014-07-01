@@ -9,6 +9,11 @@
     ],
     "minimum-stability": "dev",
     "require": {
-	 "php": ">=5.1"
+	    "php": ">=5.1"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.0-dev"
+        }
     }
 }
