@@ -11,7 +11,7 @@
     "require": {
 	 "php": ">=5.1"
     },
-    "target-dir": "test",
+    "target-dir": "../",
     "extra": {
         "branch-alias": {
           "dev-master": "1.x.x-dev"
