@@ -9,8 +9,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-	 "php": ">=5.1",
-    }
+	 "php": ">=5.1"
+    },
     "target-dir": "test",
     "extra": {
         "branch-alias": {
