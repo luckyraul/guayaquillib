@@ -10,11 +10,5 @@
     "minimum-stability": "dev",
     "require": {
 	 "php": ">=5.1"
-    },
-    "target-dir": "../t",
-    "extra": {
-        "branch-alias": {
-          "dev-master": "1.x.x-dev"
-        }
     }
 }
