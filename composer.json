@@ -1,0 +1,14 @@
+{
+    "name": "laximor/guayaquillib",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Antonov Aleksandr",
+            "email": "antonov.a@laximo.ru"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+
+    }
+}
