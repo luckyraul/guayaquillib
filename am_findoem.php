@@ -5,8 +5,6 @@
 </head>
 <body>
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
 include('am_searchpanel.php');
 include('extender.php');
@@ -16,13 +14,18 @@ include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestAm
 $brand = @$_GET['brand'] ? $_GET['brand'] : null;
 $oem = @$_GET['oem'];
 $options = @$_GET['options'];
+
 if ($options) {
     $options = implode($options, ',');
 }
+
 $replacementtypes = @$_GET['replacementtypes'];
 $replacementtypes = implode($replacementtypes, ',');
 
-$request = new GuayaquilRequest('en_US');
+$request = new GuayaquilRequestAM('en_US');
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 $request->appendFindOEM($oem, $options, $brand, $replacementtypes);
 $data = $request->query();
 
@@ -33,11 +36,13 @@ if ($request->error != '')
 else
 {
     echo '<hr><div>';
-
     $data = simplexml_load_string($data);
     $data = $data[0]->FindOEM->detail;
     if (!$data || (!(string)$data['manufacturerid'])) {
-        $request = new GuayaquilRequest('en_US');
+        $request = new GuayaquilRequestAM('en_US');
+        if (Config::$useLoginAuthorizationMethod) {
+            $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+        }
         $request->appendFindOEMCorrection($oem);
         $data = $request->query();
         $data = simplexml_load_string($data);
@@ -53,7 +58,6 @@ else
         foreach ($data as $detail)
         {
             echo '<a href="am_manufacturerinfo.php?manufacturerid='.$detail['manufacturerid'].'">'.$detail['manufacturer'].'</a> <a href="am_finddetail.php?detail_id='.$detail['detailid'].'&options='.$options.'">'.$detail['formattedoem'].'</a> '.$detail['name'];
-            //echo ' <a href="applicability.php?&oem='.$detail['oem'].'&brand='.$detail['manufacturer'].'">'.CommonExtender::FormatLocalizedString("applicability").'</a>';
             echo '</div>';
 
             $weight = (float)$detail['weight'];
@@ -91,8 +95,6 @@ else
                 $dimensions = (float)$replacement->detail['dimensions'];
                 if ($dimensions)
                     echo 'Weight '.$dimensions;
-
-                echo ' <a href="applicability.php?&oem='.$replacement->detail['oem'].'&brand='.$replacement->detail['manufacturer'].'">'.CommonExtender::FormatLocalizedString("applicability").'</a>';
 
                 echo '</div>';
             }

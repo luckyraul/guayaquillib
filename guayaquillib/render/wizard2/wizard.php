@@ -101,7 +101,7 @@ class GuayaquilWizard extends GuayaquilTemplate
 		$html = '<select disabled style="width:250px" name="Select'.$condition['type'].'">';
 		$html .= $this->DrawDisabledSelectorOption($condition);
 		$html .= '</select>';
-        $removeFile = $this->Convert2uri(__DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'remove.png');
+        $removeFile = $this->Convert2uri(__DIR__ . DIRECTORY_SEPARATOR . 'images/remove.png');
 		$html .= '<a href="'.str_replace('$ssd$', $condition['ssd'], $this->FormatLink('wizard', null, $catalog)).'"><img src="'.$removeFile.'"></a>';
 
 		return $html;

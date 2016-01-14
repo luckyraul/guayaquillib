@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'template.php';
+require_once dirname(__FILE__) . '/../template.php';
 
 class GuayaquilDetailsList extends GuayaquilTemplate
 {
@@ -12,16 +12,14 @@ class GuayaquilDetailsList extends GuayaquilTemplate
     var $detailinfoimage = 'images/info.gif';
     var $cartimage = 'images/cart.gif';
 
-    var $columns = array('Toggle' => 1, 'OEM' => 3, 'Name' => 3, 'Cart' => 1, 'Price' => 3, 'Note' => 2, 'Tooltip' => 1);
-    var $basic_columns = array('Toggle' => 1, 'PNC' => 1, 'OEM' => 3, 'Name' => 3, 'Cart' => 1, 'Price' => 3, 'Tooltip' => 1, 'flag' => 1, 'availability' => 1, 'Note' => 2,);
+    var $columns = array('OEM' => 3, 'Name' => 3, 'Cart' => 1, 'Note' => 2, 'Tooltip' => 1);
+    var $basic_columns = array('PNC' => 1, 'OEM' => 3, 'Name' => 3, 'Cart' => 1, 'Tooltip' => 1, 'flag' => 1, 'availability' => 1, 'Note' => 2,);
 
     var $currency = '%s';
     var $group_by_filter = false;
     var $row_class = '';
     static $table_no = 0;
 
-    protected $prices;
-    protected $availability;
     protected $details;
     protected $catalog;
 
@@ -40,10 +38,8 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         $this->cartimage                = $this->Convert2uri(dirname(__FILE__) . DIRECTORY_SEPARATOR . $this->cartimage);
     }
 
-    function Draw($catalog, $details, $replacements = array(), $prices = array(), $availability = array())
+    function Draw($catalog, $details)
     {
-        $this->prices       = $prices;
-        $this->availability = $availability;
         $this->catalog      = $catalog;
         $this->details      = $details;
 
@@ -55,7 +51,7 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         $html .= '<table class="guayaquil_table" width="96%" id="g_DetailTable' . (++GuayaquilDetailsList::$table_no) . '">';
 
         foreach ($this->basic_columns as $column => &$visibility) {
-            $visibility = $this->columns[$column]; //?$this->columns[$column]:$visibility;
+            $visibility = array_key_exists($column, $this->columns) ? $this->columns[$column] : 0; //?$this->columns[$column]:$visibility;
         }
 
         $html .= $this->DrawHeader($this->basic_columns);
@@ -89,7 +85,7 @@ class GuayaquilDetailsList extends GuayaquilTemplate
                 }
 
             foreach ($searched as $detail) {
-                $html .= $this->DrawItem($catalog, $detail, $replacements, $prices);
+                $html .= $this->DrawItem($catalog, $detail);
                 $this->rowno++;
             }
 
@@ -97,20 +93,20 @@ class GuayaquilDetailsList extends GuayaquilTemplate
             $this->row_class .= ' g_addgr g_addgr_collapsed ';
 
             foreach ($additional as $detail) {
-                $html .= $this->DrawItem($catalog, $detail, $replacements, $prices);
+                $html .= $this->DrawItem($catalog, $detail);
                 $this->rowno++;
             }
         } else {
             foreach ($details as $detail) {
                 $found = true;
 
-                $html .= $this->DrawItem($catalog, $detail, $replacements, $prices);
+                $html .= $this->DrawItem($catalog, $detail);
                 $this->rowno++;
             }
 
             if (!$found)
                 foreach ($details->row as $detail) {
-                    $html .= $this->DrawItem($catalog, $detail, $replacements, $prices);
+                    $html .= $this->DrawItem($catalog, $detail);
                     $this->rowno++;
                 }
         }
@@ -123,23 +119,9 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         return $html;
     }
 
-    function DrawItem($catalog, $detail, $replacements, $prices)
+    function DrawItem($catalog, $detail)
     {
-        $r           = $replacements[(string)$detail['oem']];
-        $hasChildren = $detail->replacements->getName() != '' || is_array($r) ? true : false;
-        $html        = $this->DrawDetailRow($detail, $this->columns, false, $hasChildren, $prices, false, $catalog);
-
-        if ($detail->replacements->getName() != '') {
-            foreach ($detail->replacements->row as $replacement) {
-                $html .= $this->DrawDetailRow($replacement, $this->columns, true, false, null, false, $catalog);
-            }
-        }
-
-        if (is_array($r)) {
-            foreach ($r as $replacement) {
-                $html .= $this->DrawDetailRow($replacement, $this->columns, true, false, null, true, $catalog);
-            }
-        }
+        $html        = $this->DrawDetailRow($detail, $this->columns, false, $catalog);
 
         return $html;
     }
@@ -181,7 +163,7 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         return $this->GetLocalizedString('nothingfound');
     }
 
-    function DrawDetailRow($detail, $columns, $replacement, $haschild, $prices, $isArray, $catalog)
+    function DrawDetailRow($detail, $columns, $isArray, $catalog)
     {
         $html = '<tr';
 
@@ -191,20 +173,20 @@ class GuayaquilDetailsList extends GuayaquilTemplate
 
         $pnc = $this->getProperty($detail, 'codeonimage', $isArray);
 
-        $html .= ' class="' . $this->row_class . (strlen($filter) > 0 ? 'g_filter_row ' : '') . ($bits ? ' g_nonstandarddetail ' : '') . ($replacement == true ? 'g_replacementRow" style="display:none;"' : 'g_collapsed g_highlight"');
+        $html .= ' class="' . $this->row_class . (strlen($filter) > 0 ? 'g_filter_row ' : '') . ($bits ? ' g_nonstandarddetail ' : '') . 'g_collapsed g_highlight"';
         $html .= ' name="' . (isset($pnc) ? $pnc : 'd_' . $this->rowno) . '"';
-        $html .= ($replacement == true ? '' : ' id="d_' . $this->rowno . '"');
+        $html .= ' id="d_' . $this->rowno . '"';
         $html .= ' onmouseout="hl(this, \'out\');" onmouseover="hl(this, \'in\');">';
 
         foreach ($this->basic_columns as $column => $visibility)
-            $html .= $this->DrawDetailCell($detail, strtolower($column), $visibility, $replacement, $haschild, $isArray);
+            $html .= $this->DrawDetailCell($detail, strtolower($column), $visibility, $isArray);
 
         $html .= '</tr>';
 
         return $html;
     }
 
-    function DrawDetailCell($detail, $column, $visibility, $replacement, $haschild, $isArray)
+    function DrawDetailCell($detail, $column, $visibility, $isArray)
     {
 
         $html = '<td name="c_' . $column . '"';
@@ -218,7 +200,7 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         }
         $html .= '>';
 
-        $html .= $this->DrawDetailCellValue($detail, $column, $visibility, $replacement, $haschild, $isArray);
+        $html .= $this->DrawDetailCellValue($detail, $column, $visibility, $isArray);
 
         $html .= '</td>';
         return $html;
@@ -234,12 +216,9 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         return $this->FormatLink('filter', $detail, $this->catalog);
     }
 
-    function DrawDetailCellValue($detail, $column, $visibility, $replacement, $hasChild, $isArray)
+    function DrawDetailCellValue($detail, $column, $visibility, $isArray)
     {
         switch ($column) {
-            case 'toggle':
-                return ($replacement == true ? '&nbsp;' : ($hasChild == true ? '<img id="d_' . $this->rowno . '" src="' . $this->closedimage . '" width="16" height="16" onclick="g_toggle(this, opennedimage, closedimage);">' : ''));
-
             case 'pnc':
                 return $this->getProperty($detail, 'codeonimage', $isArray);
 
@@ -250,45 +229,19 @@ class GuayaquilDetailsList extends GuayaquilTemplate
                 return $this->getProperty($detail, 'amount', $isArray);
 
             case 'name':
-                $html = '';
-                if ($replacement == true) {
-                    $html = '<img style="float:left; margin-right:5px;" ';
-                    if ($this->getProperty($detail, 'replacement', $isArray) == 0) {
-                        $html .= 'class="c_rfull" src="' . $this->fullreplacementimage;
-                    } elseif (getProperty($detail, 'replacement', $isArray) > 0) {
-                        $html .= 'class="c_rforw" src="' . $this->forwardreplacementimage;
-                    } else {
-                        $html .= 'class="c_rbackw" src="' . $this->backwardreplacementimage;
-                    }
-                    $html .= '" width="16" height="16" />';
-                }
+                $link = $this->FormatLink('detail', $detail, $this->catalog);
+
+                $html = '<a href="'.$link.'">';
                 $name = $this->getProperty($detail, 'name', $isArray);
                 if (!strlen((string)$name)) {
                     $name = 'Наименование не указано';
                 }
 
-                $html .= ' ' . $name;
+                $html .= ' ' . $name .'</a>';
                 return $html;
 
             case 'cart':
                 return '<img class="g_addtocart" src="' . $this->cartimage . '" width="22" height="22">';
-
-            case 'price':
-                if (is_array($this->prices)) {
-                    $oem   = (string)$this->getProperty($detail, 'oem', $isArray);
-                    $price = (string)$this->prices[$oem];
-                    if ($price != '') {
-                        return sprintf($this->currency, $price);
-                    } else {
-                        return '-';
-                    }
-                } else {
-                    if (((string)$this->getProperty($detail, 'price', $isArray)) != '') {
-                        return sprintf($this->currency, $this->getProperty($detail, 'price', $isArray));
-                    } else {
-                        return '-';
-                    }
-                }
 
             case 'note':
                 return str_replace("\n", "<br>", $this->getProperty($detail, 'note', $isArray));
@@ -303,9 +256,6 @@ class GuayaquilDetailsList extends GuayaquilTemplate
                     $flags .= 'Нестандартная деталь';
                 }
                 return $flags;
-            case 'availability':
-                $oem = (string)$this->getProperty($detail, 'oem', $isArray);
-                return $this->availability[$oem];
 
             default:
                 return str_replace("\n", "<br>", $this->getProperty($detail, $column, $isArray));
@@ -375,7 +325,7 @@ class GuayaquilDetailsList extends GuayaquilTemplate
         return '<tr>
             <td colspan="' . count($this->columns) . '">
                 <img class="g_additional_toggler g_addcollapsed" class="g_addcollapsed" src="' . $this->closedimage . '" width="16" height="16" onclick="g_toggleAdditional(\'g_DetailTable' . GuayaquilDetailsList::$table_no . '\', opennedimage, closedimage);">
-                <a href="#" onClick="g_toggleAdditional(\'g_DetailTable' . GuayaquilDetailsList::$table_no . '\', opennedimage, closedimage); return false;"> Остальные детали узла</a>
+                <a href="#" onClick="g_toggleAdditional(\'g_DetailTable' . GuayaquilDetailsList::$table_no . '\', opennedimage, closedimage); return false;"> '.$this->GetLocalizedString('otherunitparts').'</a>
             </td>
         </tr>';
     }

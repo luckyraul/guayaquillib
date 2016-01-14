@@ -2,30 +2,35 @@
 
 require_once('soap.php');
 
-class GuayaquilRequest
+class GuayaquilRequestAM
 {
 	//	Function parameters
-	public $locale;
+    protected $locale;
 
 	// Temporery varibles
-	public $query = '';
+	protected $query = '';
 
 	// soap wrapper object
-	public $soap;
+    /** @var \GuayaquilSoapWrapper */
+    protected $soap;
 
 	//	Results
 	public $error;
 	public $data;
 
-    public $certificatePath;
-
 	function __construct($locale = 'ru_RU')
 	{
 		$this->locale = $this->checkParam($locale);
         $this->soap = new GuayaquilSoapWrapper();
+        $this->soap->setCertificateAuthorizationMethod();
 	}
 
-	function checkParam($value)
+    public function setUserAuthorizationMethod($login, $key)
+    {
+        $this->soap->setUserAuthorizationMethod($login, $key);
+    }
+
+    function checkParam($value)
 	{
 		return $value;
 	}
@@ -70,15 +75,9 @@ class GuayaquilRequest
 
 	function query()
 	{
-        if ($this->certificatePath != '')
-            $this->soap->certificatePath = $this->certificatePath;
-
-		$this->soap->queryData($this->query, false);
-
+        $this->data = $this->soap->queryData($this->query, false);
 		$this->query = '';
-
-		$this->error = $this->soap->error;
-		$this->data = $this->soap->data;
+		$this->error = $this->soap->getError();
 
 		return $this->data;
 	}

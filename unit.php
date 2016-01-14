@@ -6,7 +6,7 @@
 
 <?php
 // Include soap request class
-include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'request.php');
+include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestOem.php');
 // Include view class
 include('guayaquillib'.DIRECTORY_SEPARATOR.'render'.DIRECTORY_SEPARATOR.'unit'.DIRECTORY_SEPARATOR.'default.php');
 include('extender.php');
@@ -15,12 +15,22 @@ class DetailExtender extends CommonExtender
 {
 	function FormatLink($type, $dataItem, $catalog, $renderer)
 	{
-		return 'window.alert('.CommonExtender::FormatLocalizedString('SelectedDetail', $dataItem->oem).')';
+        if ($type == 'filter')
+            $link = 'detailfilter.php?c=' . $catalog . '&vid=' . $renderer->vehicle_id . '&uid=' . $_GET['uid'] .  '&cid=' . $_GET['cid'] . 'did=' . $dataItem['detailid'] . '&ssd=' . $dataItem['ssd'] . '&f=' . urlencode($dataItem['filter']);
+        else {
+            $link = Config::$redirectUrl;
+            $link = str_replace('$oem$', urlencode($dataItem['oem']), $link);
+        }
+
+        return $link;
 	}	
 }
 
 // Create request object
-$request = new GuayaquilRequest($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+$request = new GuayaquilRequestOEM($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 
 // Append commands to request
 $request->appendGetUnitInfo($_GET['uid']);
@@ -49,10 +59,10 @@ else
     echo $renderer->Draw($_GET['c'], $unit, $imagemap, $details, NULL, NULL);
 
     $pnc = array();
-    if ($_GET['coi'])
+    if (array_key_exists('coi', $_GET))
         $pnc = explode(',', $_GET['coi']);
 
-    if ($_GET['oem']) {
+    if (array_key_exists('oem', $_GET) && $_GET['oem']) {
         $oem = $_GET['oem'];
         foreach ($details as $detail) {
             if ((string)$detail['oem'] == $oem) {

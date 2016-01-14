@@ -6,7 +6,7 @@
 <body>
 <?php
 // Include soap request class
-include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'request.php');
+include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestOem.php');
 // Include catalog list view
 include('guayaquillib'.DIRECTORY_SEPARATOR.'render'.DIRECTORY_SEPARATOR.'applicability'.DIRECTORY_SEPARATOR.'applicability.php');
 
@@ -27,7 +27,10 @@ $brand = $_GET['brand'];
 $oem = $_GET['oem'];
 
 // Create request object
-$request = new GuayaquilRequest('', '', Config::$catalog_data);
+$request = new GuayaquilRequestOEM('', '', Config::$catalog_data);
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 
 // Append commands to request
 $request->appendFindDetailApplicability($oem, $brand);

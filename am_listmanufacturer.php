@@ -10,10 +10,12 @@ include('am_searchpanel.php');
 // Include soap request class
 include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestAm.php');
 
-$request = new GuayaquilRequest('en_US');
+$request = new GuayaquilRequestAM('en_US');
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 $request->appendListManufacturer();
 $data = $request->query();
-
 if ($request->error != '')
 {
     echo $request->error;

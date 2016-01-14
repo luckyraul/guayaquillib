@@ -143,11 +143,11 @@ class SSLSoapClient extends SoapClient
         curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, array("Content-Type: text/xml; charset=utf-8", 'Expect:',));
         curl_setopt($this->curlHandle, CURLOPT_POST, true);
 
-        if ($this->options['sslCertPath']) {
+        if (in_array('sslCertPath', $this->options)) {
             $this->setSslCert($this->options['sslCertPath']);
         }
 
-        if ($this->options['sslKeyPath']) {
+        if (in_array('sslKeyPath', $this->options)) {
             $this->setSslKey($this->options['sslKeyPath']);
         }
 

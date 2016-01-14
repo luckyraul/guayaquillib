@@ -1,8 +1,8 @@
 ﻿<?php
 
 // Including localization file
-include('config.php');
-include('localization_'.Config::$ui_localization.'.php');
+include_once('config.php');
+include_once('localization_'.Config::$ui_localization.'.php');
 
 // Including common template
 require_once('guayaquillib'.DIRECTORY_SEPARATOR.'render'.DIRECTORY_SEPARATOR.'template.php');
@@ -51,6 +51,19 @@ abstract class CommonExtender extends LanguageTemplate
         $str = strtolower($str);
         $data = @LanguageTemplate::$language_data[$str];
         return $data ? $data : $str;
+    }
+
+    static function isFeatureSupported($catalogInfo, $featureName)
+    {
+        $result = false;
+        foreach ($catalogInfo->features->feature as $feature) {
+            if ((string)$feature['name'] == $featureName) {
+                $result = true;
+                break;
+            }
+        }
+
+        return $result;
     }
 }
 ?>

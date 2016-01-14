@@ -51,7 +51,7 @@ class GuayaquilCatalogsList extends GuayaquilTemplate
 
 	function DrawHeader()
 	{
-		$html = '<tr>';
+		$html .= '<tr>';
 		
 		foreach ($this->columns as $column)
 			$html .= $this->DrawHeaderCell(strtolower($column));

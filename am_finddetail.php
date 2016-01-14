@@ -12,8 +12,13 @@ include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestAm
 $detail_id = $_GET['detail_id'];
 $options = $_GET['options'];
 
-$request = new GuayaquilRequest('en_US');
+$request = new GuayaquilRequestAM('en_US');
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
+
 $request->appendFindDetail($detail_id, $options);
+
 $data = $request->query();
 
 if ($request->error != '')

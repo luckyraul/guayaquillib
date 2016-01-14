@@ -7,7 +7,7 @@
 <body>
 <?php
 // Include soap request class
-include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'request.php');
+include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestOem.php');
 // Include view class
 include('guayaquillib'.DIRECTORY_SEPARATOR.'render'.DIRECTORY_SEPARATOR.'qdetails'.DIRECTORY_SEPARATOR.'default.php');
 // Include view class
@@ -26,21 +26,28 @@ class QuickDetailsExtender extends CommonExtender
             $coi = array();
             foreach ($dataItem->Detail as $detail)
             {
-                $i = (string)$detail['codeonimage'];
-                $coi[$i] = $i;
+                if ((string)$detail['match']) {
+                    $i = (string)$detail['codeonimage'];
+                    $coi[$i] = $i;
+                }
             }
 
-            $link = 'unit.php?c=' . $catalog . '&vid=' . $renderer->vehicle_id . '&uid=' . $dataItem['unitid'] .  '&cid=' . $renderer->categoryid . '&ssd=' . $dataItem['ssd'] . '&coi=' . implode(',', $coi);
+            $link = 'unit.php?c=' . $catalog . '&vid=' . $renderer->vehicleid . '&uid=' . $dataItem['unitid'] .  '&cid=' . $renderer->currentunit['categoryid'] . '&ssd=' . $dataItem['ssd'] . '&coi=' . implode(',', $coi);
         }
-        elseif ($type == 'detail')
-            $link = 'unit.php?c=' . $catalog . '&vid=' . $renderer->vehicle_id . '&uid=' . $renderer->currentunit['unitid'] .  '&cid=' . $renderer->categoryid . '&coi=' . $dataItem['codeonimage'] . '&ssd=' . $dataItem['ssd'];
+        elseif ($type == 'detail') {
+            $link = Config::$redirectUrl;
+            $link = str_replace('$oem$', urlencode($dataItem['oem']), $link);
+        }
 
         return $link;
     }
 }
 
 // Create request object
-$request = new GuayaquilRequest($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+$request = new GuayaquilRequestOEM($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 
 // Append commands to request
 $request->appendGetVehicleInfo($_GET['vid']);

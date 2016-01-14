@@ -193,7 +193,8 @@ table.guayaquil_tablecatalog tbody tr th{
 }
 
 .g_input_error {
-	background:red;
+	/*background:red;*/
+    border: 1px solid red;
 }
 
 /* Details */
@@ -419,10 +420,4 @@ div.g_catalog_float_name {
 
 .g_nonstandarddetail, .g_nonstandarddetail a {
     color: #ff6600;
-}
-
-.guayaqyul_WizardStep2SelectHdr {
-    font-weight: bold;
-
-    font-size: 130%;
 }

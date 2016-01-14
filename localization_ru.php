@@ -2,12 +2,13 @@
 
 require_once(__DIR__.'/guayaquillib/render/template.php');
 
-abstract class LanguageTempalate implements IGuayaquilExtender {
+abstract class LanguageTemplate implements IGuayaquilExtender {
 
     public static $language_data = array(
         'catalog title' => 'Наименование каталога',
         'catalog date' => 'Дата',
         'searchbyvin' => 'Поиск по VIN',
+        'searchbycustom' => 'Поиск по',
         'inputvin' => 'Введите VIN автомобиля, например %s',
         'search' => 'Поиск',
         'searchbyframe' => 'Поиск по коду/номеру кузова',
@@ -17,6 +18,7 @@ abstract class LanguageTempalate implements IGuayaquilExtender {
         'search by wizard' => 'Поиск автомобиля по параметрам',
         'findfailed' => 'Поиск по %s ничего не дал',
         'cars' => 'Найденные автомобили',
+        'columnvehiclebrand' => 'Бренд',
         'columnvehiclename' => 'Название',
         'columnvehiclemodification' => 'Модификация',
         'columnvehiclegrade' => 'Комплектация',
@@ -35,7 +37,7 @@ abstract class LanguageTempalate implements IGuayaquilExtender {
         'columnvehiclemodel' => 'Модель',
         'columnvehicledatefrom' => 'Выпуск с',
         'columnvehicledateto' => 'Выпуск по',
-        'columnvehicleBrand' => 'Бренд',
+        'columnvehiclebrand' => 'Бренд',
         'categories' => 'Категории',
         'carname' => 'Автомобиль %s',
         'selecteddetail' => 'Выбрана деталь %s',

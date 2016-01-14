@@ -1,14 +1,14 @@
 ﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 </head>
 <body>
 <?php
 // Include soap request class
-include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'request.php');
+include('guayaquillib/data/requestOem.php');
 // Include view class
-include('guayaquillib'.DIRECTORY_SEPARATOR.'render'.DIRECTORY_SEPARATOR.'vehicles'.DIRECTORY_SEPARATOR.'vehicletable.php');
+include('guayaquillib/render/vehicles/vehicletable.php');
 
 include('extender.php');
 
@@ -18,73 +18,72 @@ class VehiclesExtender extends CommonExtender
     {
         if (!$catalog)
             $catalog = $dataItem['catalog'];
-        $link = ($renderer->qg ? 'qgroups' : 'vehicle').'.php?c=' . $catalog . '&vid=' . $dataItem['vehicleid'] . '&ssd=' . $dataItem['ssd'] . '&path_data=' . urlencode(base64_encode(substr($dataItem['vehicle_info'], 0, 300)));
+        $link = ($renderer->qg == 1 ? 'qgroups' : 'vehicle') . '.php?c=' . $catalog . '&vid=' . $dataItem['vehicleid'] . '&ssd=' . $dataItem['ssd'] . ($renderer->qg == -1 ? '&checkQG': ''). '&path_data=' . urlencode(base64_encode(substr($dataItem['vehicle_info'], 0, 300)));
 
         return $link;
-		//return 'vehicle.php?c='.$catalog.'&vid='.$dataItem['vehicleid'].'&ssd='.$dataItem['ssd'];
-    }   
+        //return 'vehicle.php?c='.$catalog.'&vid='.$dataItem['vehicleid'].'&ssd='.$dataItem['ssd'];
+    }
 }
 
 // Create request object
-$request = new GuayaquilRequest($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+$catalogCode = array_key_exists('c', $_GET) ? $_GET['c'] : false;
+$request = new GuayaquilRequestOEM($catalogCode, array_key_exists('ssd', $_GET) ? $_GET['ssd'] : '', Config::$catalog_data);
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 
 // Append commands to request
-if ($_GET['ft'] == 'findByVIN')
-	$request->appendFindVehicleByVIN($_GET['vin']);
-else if ($_GET['ft'] == 'findByFrame')
-	$request->appendFindVehicleByFrame($_GET['frame'], $_GET['frameNo']);
-else if ($_GET['ft'] == 'findByWizard')
-    $request->appendFindVehicleByWizard($_GET['wid']);
-else if ($_GET['ft'] == 'findByWizard2')
+$findType = $_GET['ft'];
+if ($findType == 'findByVIN')
+    $request->appendFindVehicleByVIN($_GET['vin']);
+else if ($findType == 'findByFrame')
+    $request->appendFindVehicleByFrame($_GET['frame'], $_GET['frameNo']);
+else if ($findType == 'execCustomOperation')
+    $request->appendExecCustomOperation($_GET['operation'], $_GET['data']);
+else if ($findType == 'findByWizard2')
     $request->appendFindVehicleByWizard2($_GET['ssd']);
 
-$request->appendGetCatalogInfo();
-
+if ($catalogCode) {
+    $request->appendGetCatalogInfo();
+}
 // Execute request
 $data = $request->query();
 
 // Check errors
-if ($request->error != '')
-{
+if ($request->error != '') {
     echo $request->error;
-}
-else
-{
-	$vehicles = $data[0];
-	$cataloginfo = $data[1]->row;
-	
-	if (is_object($vehicles) == false || $vehicles->row->getName() == '') 
-	{
-		if ($_GET['ft'] == 'findByVIN')
-			echo CommonExtender::FormatLocalizedString('FINDFAILED', $_GET['vin']);
-		else
-			echo CommonExtender::FormatLocalizedString('FINDFAILED', $_GET['frame'].'-'.$_GET['frameNo']);
-	} else
-	{
-		echo '<h1>'.CommonExtender::LocalizeString('Cars').'</h1><br>';
+} else {
+    $vehicles = $data[0];
+    $cataloginfo = $catalogCode ? $data[1]->row : false;
 
-	  // Create data renderer
-	  $renderer = new GuayaquilVehiclesList(new VehiclesExtender());
-      $renderer->columns = array('name', 'date', 'datefrom', 'dateto', 'model', 'framecolor', 'trimcolor', 'modification', 'grade', 'frame', 'engine', 'engineno', 'transmission', 'doors', 'manufactured', 'options', 'creationregion', 'destinationregion', 'description', 'remarks');
+    if (is_object($vehicles) == false || $vehicles->row->getName() == '') {
+        if ($_GET['ft'] == 'findByVIN')
+            echo CommonExtender::FormatLocalizedString('FINDFAILED', $_GET['vin']);
+        else
+            echo CommonExtender::FormatLocalizedString('FINDFAILED', $_GET['frame'] . '-' . $_GET['frameNo']);
+    } else {
+        echo '<h1>' . CommonExtender::LocalizeString('Cars') . '</h1><br>';
 
-      $renderer->qg = (string)$cataloginfo['supportquickgroups'] == 'true';
+        // Create data renderer
+        $renderer = new GuayaquilVehiclesList(new VehiclesExtender());
+        $renderer->columns = array('name', 'date', 'datefrom', 'dateto', 'model', 'framecolor', 'trimcolor', 'modification', 'grade', 'frame', 'engine', 'engineno', 'transmission', 'doors', 'manufactured', 'options', 'creationregion', 'destinationregion', 'description', 'remarks');
 
-	  // Draw data
-	  echo $renderer->Draw($_GET['c'], $vehicles);
-	}
+        $renderer->qg = !$cataloginfo ? -1 : (CommonExtender::isFeatureSupported($cataloginfo, 'quickgroups') ? 1 : 0);
 
-	if ($cataloginfo['supportvinsearch'] == 'true') 
-	{
-		$formvin = $_GET['vin'];
-		include('vinsearch.php');
-	}
+        // Draw data
+        echo $renderer->Draw($catalogCode, $vehicles);
+    }
 
-	if ($cataloginfo['supportframesearch'] == 'true')
-	{
-		$formframe = $_GET['frame'];
-		$formframeno = $_GET['frameNo'];
-		include('framesearch.php');
-	}
+    if (($cataloginfo && CommonExtender::isFeatureSupported($cataloginfo, 'vinsearch')) || ($findType == 'findByVIN')) {
+        $formvin = array_key_exists('vin', $_GET) ? $_GET['vin'] : '';
+        include('forms/vinsearch.php');
+    }
+
+    if (($cataloginfo && CommonExtender::isFeatureSupported($cataloginfo, 'framesearch')) || $findType == 'findByFrame') {
+        $formframe = array_key_exists('frame', $_GET) ? $_GET['frame'] : '';
+        $formframeno = array_key_exists('frameNo', $_GET) ? $_GET['frameNo'] : '';
+        include('forms/framesearch.php');
+    }
 }
 
 ?>

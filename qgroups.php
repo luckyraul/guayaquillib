@@ -6,11 +6,9 @@
 
 <body>
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
 // Include soap request class
-include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'request.php');
+include('guayaquillib'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'requestOem.php');
 // Include view class
 include('guayaquillib'.DIRECTORY_SEPARATOR.'render'.DIRECTORY_SEPARATOR.'qgroups'.DIRECTORY_SEPARATOR.'default.php');
 // Include view class
@@ -30,7 +28,10 @@ class QuickGroupsExtender extends CommonExtender
 }
 
 // Create request object
-$request = new GuayaquilRequest($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+$request = new GuayaquilRequestOEM($_GET['c'], $_GET['ssd'], Config::$catalog_data);
+if (Config::$useLoginAuthorizationMethod) {
+    $request->setUserAuthorizationMethod(Config::$userLogin, Config::$userKey);
+}
 
 // Append commands to request
 $request->appendGetVehicleInfo($_GET['vid']);

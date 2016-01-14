@@ -6,50 +6,63 @@ class GuayaquilSoapWrapper
 {
     ///////////////////////////// Configuration
 
-    var $certificatePath = 'cert';
+    private $authMethod;
 
-    var $certificateFileName = 'client.pem';
+    private $certificateFileName;
+    private $certificateKeyFileName;
+    private $certificatePassword;
 
-    var $keyFileName = 'client.key';
-
-    var $certificatePassword = "123ertGHJ";
+    private $userLogin;
+    private $userSecretKey;
 
     //////////////////////////// Results
 
     // If error != '' then request processing error occured
-    var $error = '';
+    private $error = '';
 
     // SimpleXML object
-    var $data;
+    private $data;
 
-    function __construct()
+    public function setCertificateAuthorizationMethod($certificateFolder = false, $certificatePassword = false)
     {
-        $this->certificatePath = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'cert';
+        if (!$certificateFolder) {
+            $certificateFolder = dirname(__FILE__).DIRECTORY_SEPARATOR.'cert';
+        }
+
+        $this->authMethod = 'certificate';
+        $this->certificateFileName = $certificateFolder . '/client.pem';
+        $this->certificateKeyFileName = $certificateFolder . '/client.key';
+        $this->certificatePassword = $certificatePassword ? $certificatePassword : "123ertGHJ";
     }
 
-    function getSoapClient($service_type = 'oem', $useCertificate = true)
+    public function setUserAuthorizationMethod($login, $key)
+    {
+        $this->authMethod = 'login';
+        $this->userLogin = $login;
+        $this->userSecretKey = $key;
+    }
+
+    function getSoapClient($laximoOem = true)
     {
         $options = array(
             'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP,
         );
 
-        if ($service_type == 'oem') {
+        if ($laximoOem) {
             $options['uri'] = 'http://WebCatalog.Kito.ec';
-            $options['location'] = 'https://10.1.1.246/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
-        } else if ($service_type == 'am') {
-            $options['uri'] = 'http://Aftermarket.Kito.ec';
-            $options['location'] = 'https://aws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
-        } else if ($service_type == 'prag') {
-            $options['uri'] = 'http://Prag.Kito.ec';
-            $options['location'] = 'https://10.1.1.246/ec.Kito.Prag/services/PriceAggregator.PriceAggregatorHttpSoap11Endpoint/';
+            $options['location'] = ($this->authMethod == 'certificate' ? 'https' : 'http').'://ws.avtosoft.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
         } else {
-            throw new Exception("Unknown service type {$service_type}");
+            $options['uri'] = 'http://Aftermarket.Kito.ec';
+            $options['location'] = 'https://aws.laximo.org/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
         }
 
-        if ($useCertificate)
-        {
-            $options['sslCertPath'] = $this->certificatePath . DIRECTORY_SEPARATOR . $this->certificateFileName;
-            $options['sslKeyPath'] = $this->certificatePath . DIRECTORY_SEPARATOR . $this->keyFileName;
+        if ($this->authMethod == 'certificate') {
+            $options['sslCertPath'] = $this->certificateFileName;
+            $options['sslKeyPath'] = $this->certificateKeyFileName;
+            $options['passphrase'] = $this->certificatePassword;
+            $options['sslcertpasswd'] = $this->certificatePassword;
+            $options['verifypeer'] = 0;
+            $options['verifyhost'] = 0;
         }
 
         $client = new SSLSoapClient(null, $options);
@@ -57,14 +70,15 @@ class GuayaquilSoapWrapper
         return $client;
     }
 
-    function queryData($request, $service_type = 'oem', $login = false, $secretKey = false)
+    function queryData($request, $oem_service = true)
     {
         try {
-            $client = $this->getSoapClient($service_type, !$login || !$secretKey);
-            if ($login && $secretKey)
-                $this->data = $client->QueryDataLogin($request, $login, md5($request.$secretKey));
-            else
+            $client = $this->getSoapClient($oem_service);
+            if ($this->authMethod == 'certificate') {
                 $this->data = $client->QueryData($request);
+            } else {
+                $this->data = $client->QueryDataLogin($request, $this->userLogin, md5($request . $this->userSecretKey));
+            }
 
             return $this->data;
         } catch (Exception $ex) {
@@ -92,14 +106,14 @@ class GuayaquilSoapWrapper
         return substr($err, $pos);
     }
 
-    function queryDataCheckException($request)
+    public function getError()
     {
-        try {
-            $this->data = $this->queryData($request);
-            return $this->data;
-        } catch (SoapFault $exception) {
-            $this->error = $exception->faultstring;
-        }
+        return $this->error;
+    }
+
+    public function getData()
+    {
+        return $this->data;
     }
 }
 

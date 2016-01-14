@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'template.php';
+require_once dirname(__FILE__) . '/../template.php';
 
 class GuayaquilCategoriesList extends GuayaquilTemplate
 {
@@ -120,7 +120,7 @@ class GuayaquilCategoriesList extends GuayaquilTemplate
 
     function DrawItemValue($row)
     {
-        return $row['name'];
+        return '<b>'.$row['code'] . '</b> ' . $row['name'];
     }
 
     function DrawSearchForm()

@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'template.php';
+require_once dirname(__FILE__) . '/../template.php';
 
 class GuayaquilVehiclesList extends GuayaquilTemplate
 {

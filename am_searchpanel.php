@@ -1,4 +1,6 @@
 <?php
+include_once('config.php');
+
 $options = @$_GET['options'];
 $replacementtypes = @$_GET['replacementtypes'];
 
@@ -54,9 +56,6 @@ if (!$replacementtypes) {
 
         <input name="replacementtypes[]" value="Bidirectional" id=Bidirectional" type="checkbox" <?php echo in_array('Bidirectional', $replacementtypes) ? 'checked="cheched"' : '' ?>/>
         <label for="Bidirectional">Bidirectional</label>
-
-        <input name="replacementtypes[]" value="Default" id=Default" type="checkbox" <?php echo in_array('Default', $replacementtypes) ? 'checked="cheched"' : '' ?>/>
-        <label for="Default">Default</label>
     </div>
 
     <input type="submit" name="oemSubmit" id="oemSubmit" />

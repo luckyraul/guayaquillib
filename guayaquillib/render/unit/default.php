@@ -61,7 +61,7 @@ class GuayaquilUnit extends GuayaquilTemplate
 		$this->ConfigureUnitImageRenderer($this->unitimagerenderer);
 		$this->ConfigureDetailListRenderer($this->detaillistrenderer);
 
-        if ((string)$cataloginfo['supportquickgroups'] == 'true')
+        if (CommonExtender::isFeatureSupported($cataloginfo, 'quickgroups'))
             GuayaquilToolbar::AddButton($this->GetLocalizedString('QuickGroupsLink'), $this->FormatLink('quickgroup', null, $this->catalog));
         $unit['note']='';
         foreach ($unit->attribute as $attr)
