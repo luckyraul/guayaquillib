@@ -11,6 +11,12 @@
     "require": {
 	    "php": ">=5.1"
     },
+    "autoload": {
+        "files": [
+            "guayaquillib/data/requestAm.php",
+            "guayaquillib/data/requestOem.php"
+        ]
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "1.0-dev"
