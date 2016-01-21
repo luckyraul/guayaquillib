@@ -14,7 +14,8 @@
     "autoload": {
         "files": [
             "guayaquillib/data/requestAm.php",
-            "guayaquillib/data/requestOem.php"
+            "guayaquillib/data/requestOem.php",
+            "guayaquillib/render/qgroups/default.php"
         ]
     },
     "extra": {
