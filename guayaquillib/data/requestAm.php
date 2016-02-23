@@ -29,6 +29,11 @@ class GuayaquilRequestAM
     {
         $this->soap->setUserAuthorizationMethod($login, $key);
     }
+    
+    public function setCertificateAuthorizationMethod($certificateFolder, $certificatePassword)
+    {
+    	$this->soap->setCertificateAuthorizationMethod($certificateFolder, $certificatePassword);
+    }
 
     function checkParam($value)
 	{
